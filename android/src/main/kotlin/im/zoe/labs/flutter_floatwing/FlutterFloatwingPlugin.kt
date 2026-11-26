@@ -44,6 +44,12 @@ class FlutterFloatwingPlugin: FlutterPlugin, ActivityAware, MethodCallHandler, P
     // if contains engine already, means we are coming from window
     // TODO: take first engine as main, but if service auto start the window
     // this will cause error
+    Log.d(
+      TAG,
+      "Engine attached. Cached main engine: ${
+        FlutterEngineCache.getInstance().get(FLUTTER_ENGINE_CACHE_KEY)
+      }, Current engine: ${binding.flutterEngine}"
+    )
     if (FlutterEngineCache.getInstance().contains(FLUTTER_ENGINE_CACHE_KEY)) {
       Log.d(TAG, "[plugin] on attached to window engine")
     } else {
@@ -61,6 +67,7 @@ class FlutterFloatwingPlugin: FlutterPlugin, ActivityAware, MethodCallHandler, P
         } }
 
       Log.d(TAG, "[plugin] on attached to main engine")
+      serviceChannelInstalled = FloatwingService.installChannel(engine)
     }
   }
 
@@ -206,9 +213,26 @@ class FlutterFloatwingPlugin: FlutterPlugin, ActivityAware, MethodCallHandler, P
     }
   }
 
+
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+
+    val cachedMainEngine = FlutterEngineCache.getInstance()
+      .get(FLUTTER_ENGINE_CACHE_KEY)
+
+    // Only remove the cache entry if the detaching engine
+    // is actually the cached main engine.
+    if (cachedMainEngine === binding.flutterEngine) {
+      FlutterEngineCache.getInstance()
+        .remove(FLUTTER_ENGINE_CACHE_KEY)
+
+      Log.d(TAG, "[plugin] main engine detached - cache cleared")
+    } else {
+      Log.d(TAG, "[plugin] overlay engine detached")
+    }
+
     channel.setMethodCallHandler(null)
   }
+
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     mActivity = binding.activity

@@ -163,7 +163,7 @@ class _MeasuredSizedState extends State<_MeasuredSized> {
 
     final newSize = ctx.size;
     if (newSize == null || newSize == Size.zero) return;
-    // if (oldSize == newSize) return;
+    if (oldSize == newSize) return;
     oldSize = newSize;
     widget.onChange!(newSize);
   }
